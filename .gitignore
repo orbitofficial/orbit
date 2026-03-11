@@ -1,0 +1,20 @@
+# Build artifacts
+*.o
+*.obj
+*.elf
+*.iso
+*.bin
+
+# Editor / OS files
+*.log
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Tooling / IDE metadata
+.vscode/
+.idea/
+
+# Cursor / AI tooling
+.cursor/

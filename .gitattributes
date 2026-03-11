@@ -1,0 +1,13 @@
+* text=auto eol=lf
+
+*.s text
+*.c text
+*.h text
+*.ld text
+Makefile text
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+

@@ -1,0 +1,16 @@
+## Summary
+
+<!-- 
+Explain what this pull request changes in Orbit.
+Mention any notable design choices or trade-offs. 
+-->
+
+## Testing
+
+- [ ] `cd build && make` succeeds
+- [ ] Booted `orbit.iso` in QEMU and verified the change
+
+## Checklist
+
+- [ ] Follows the existing project layout and layering
+- [ ] Nothing broke with API etc.
