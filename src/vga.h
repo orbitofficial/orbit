@@ -25,3 +25,6 @@ void vga_write(const char* s);
 void vga_set_color(uint8_t fg, uint8_t bg);
 void vga_scroll_up(void);
 void vga_scroll_down(void);
+int vga_set_resolution(int cols, int rows);
+int vga_cols(void);
+int vga_rows(void);

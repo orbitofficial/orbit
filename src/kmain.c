@@ -16,8 +16,14 @@
 #include "api.h"
 #include "app.h"
 #include "builtins.h"
+#include "net.h"
+#include "udp.h"
+#include "dhcp.h"
+#include "rtl8139.h"
+#include "netcmd.h"
 #include "shell.h"
 #include "log.h"
+#include "splash.h"
 
 static void warmup_serial(void)
 {
@@ -32,24 +38,28 @@ void kmain(void)
     console_init();
     warmup_serial();
 
+    gdt_init();
+    idt_init();
+    isr_install();
+    pit_init(100);
+
+    __asm__ volatile("sti");
+
+    splash_show();
+    console_clear();
+
     console_set_color(VGA_LIGHT_CYAN, VGA_BLACK);
     console_printf("\n  %s\n", ORBIT_BANNER);
     console_set_color(VGA_LIGHT_GREY, VGA_BLACK);
-    console_printf("  CLI modular operating system   build %s\n\n", ORBIT_BUILD);
+    console_printf("  CLI modular operating system  \n\n");
 
     console_printf("[boot] gdt\n");
-    gdt_init();
     console_printf("[boot] idt + isr\n");
-    idt_init();
-    isr_install();
     console_printf("[boot] timer 100hz\n");
-    pit_init(100);
     console_printf("[boot] keyboard\n");
     keyboard_init();
     console_printf("[boot] heap\n");
     heap_init();
-
-    __asm__ volatile("sti");
 
     console_printf("[boot] filesystem\n");
     fs_init();
@@ -61,6 +71,17 @@ void kmain(void)
     api_init();
     app_registry_init();
     builtins_register();
+
+    console_printf("[boot] network\n");
+    net_init();
+    udp_init();
+    dhcp_init();
+    if (rtl8139_init() == 0)
+        console_printf("[boot] rtl8139 nic detected\n");
+    else
+        console_printf("[boot] no network device\n");
+    netcmd_register();
+
     log_init();
 
     klog("INFO", "Orbit %s boot complete", ORBIT_VERSION);

@@ -8,6 +8,7 @@
 #include "heap.h"
 #include "pit.h"
 #include "console.h"
+#include "vga.h"
 #include "shell.h"
 #include "log.h"
 #include "string.h"
@@ -52,6 +53,28 @@ static int cmd_clear(int argc, char** argv)
     (void)argc;
     (void)argv;
     console_clear();
+    return 0;
+}
+
+static int cmd_mode(int argc, char** argv)
+{
+    if (argc < 2) {
+        api_print("display %dx%d\n", vga_cols(), vga_rows());
+        api_print("usage: mode <80x25|80x50>\n");
+        return 0;
+    }
+    const char* x = strchr(argv[1], 'x');
+    if (!x) {
+        api_print("mode: bad format %s (try 80x25 or 80x50)\n", argv[1]);
+        return 1;
+    }
+    int cols = atoi(argv[1]);
+    int rows = atoi(x + 1);
+    if (vga_set_resolution(cols, rows) != 0) {
+        api_print("mode: unsupported %s (try 80x25 or 80x50)\n", argv[1]);
+        return 1;
+    }
+    api_print("[display] switched to %dx%d\n", cols, rows);
     return 0;
 }
 
@@ -543,6 +566,7 @@ static const app_t builtin_apps[] = {
     { "help", "list commands or show command help", cmd_help },
     { "version", "show Orbit version", cmd_version },
     { "clear", "clear the terminal", cmd_clear },
+    { "mode", "change text resolution (80x25|80x50)", cmd_mode },
     { "echo", "print text", cmd_echo },
     { "pwd", "print working directory", cmd_pwd },
     { "ls", "list directory (-l for details)", cmd_ls },

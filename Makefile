@@ -24,7 +24,8 @@ IMAGE      := $(BUILD)/orbit.img
 
 QEMU       := qemu-system-i386
 QEMUFLAGS  := -drive file=$(IMAGE),format=raw,if=ide -m 128M -no-reboot \
-              -device isa-debug-exit,iobase=0xf4,iosize=0x04
+              -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+              -netdev user,id=net0 -device rtl8139,netdev=net0
 
 all: $(IMAGE)
 
