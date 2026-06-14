@@ -48,10 +48,13 @@ $(BOOT_BIN): boot/boot.asm $(KERNEL_BIN) | $(BUILD)
 	S=$$(( ( $$(stat -c%s $(KERNEL_BIN)) + 511 ) / 512 )); \
 	$(NASM) -f bin -DKERNEL_SECTORS=$$S boot/boot.asm -o $@
 
-$(IMAGE): $(BOOT_BIN) $(KERNEL_BIN)
+WALL_LBA := 8192
+WALL_BIN  := assets/orbit_wallpaper.bin
+
+$(IMAGE): $(BOOT_BIN) $(KERNEL_BIN) $(WALL_BIN)
 	cat $(BOOT_BIN) $(KERNEL_BIN) > $@
-	S=$$(( ( $$(stat -c%s $(KERNEL_BIN)) + 511 ) / 512 )); \
-	truncate -s $$(( (1 + S) * 512 )) $@
+	truncate -s $$(( $(WALL_LBA) * 512 )) $@
+	cat $(WALL_BIN) >> $@
 
 run: $(IMAGE)
 	$(QEMU) $(QEMUFLAGS) -display none -serial stdio
@@ -66,7 +69,13 @@ logo:
 	python3 scripts/genlogo.py assets/orbit_logo.png
 	python3 scripts/png2logo.py assets/orbit_logo.png src/logo_data.h orbit_logo
 
+wallpaper:
+	python3 scripts/genwall.py assets/orbit_wallpaper.png
+	python3 scripts/png2bin.py assets/orbit_wallpaper.png assets/orbit_wallpaper.bin
+
+assets: logo wallpaper
+
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: all run gui fullscreen logo clean
+.PHONY: all run gui fullscreen logo wallpaper assets clean

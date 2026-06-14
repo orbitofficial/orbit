@@ -16,6 +16,8 @@
 #include "string.h"
 #include "orbit.h"
 #include "io.h"
+#include "ata.h"
+#include "diskmap.h"
 
 #define TASKBAR_H 44
 #define MENU_W 250
@@ -86,14 +88,8 @@ int desktop_active(void)
     return active;
 }
 
-static void wallpaper_build(void)
+static void wallpaper_paint_procedural(int w, int h)
 {
-    int w = fb_width();
-    int h = fb_height();
-    wallpaper = (uint32_t*)kmalloc((size_t)w * (size_t)h * 4);
-    if (!wallpaper)
-        return;
-
     for (int y = 0; y < h; y++) {
         uint32_t row;
         if (y < h / 2)
@@ -114,6 +110,59 @@ static void wallpaper_build(void)
     gfx_circle(cx - 22, cy - 22, 24, gfx_mix(THEME_WALL_MID, THEME_ACCENT, 100));
     gfx_ring(cx, cy, 120, 5, gfx_mix(THEME_WALL_MID, THEME_ACCENT, 90));
     gfx_ring(cx, cy, 150, 2, gfx_mix(THEME_WALL_MID, THEME_ACCENT, 45));
+
+    memcpy(wallpaper, save, (size_t)w * (size_t)h * 4);
+}
+
+static int wallpaper_load_disk(int w, int h)
+{
+    static uint8_t hdr[512];
+    if (ata_read(WALL_LBA, 1, hdr) != 0)
+        return 0;
+    uint32_t magic = *(uint32_t*)hdr;
+    uint32_t sw = *(uint32_t*)(hdr + 4);
+    uint32_t sh = *(uint32_t*)(hdr + 8);
+    if (magic != WALL_MAGIC || sw == 0 || sh == 0 || sw > 4096 || sh > 4096)
+        return 0;
+
+    size_t bytes = (size_t)sw * (size_t)sh * 4;
+    uint32_t sectors = (uint32_t)((bytes + 511) / 512);
+    uint32_t* src = (uint32_t*)kmalloc((size_t)sectors * 512);
+    if (!src)
+        return 0;
+    if (ata_read(WALL_LBA + 1, sectors, src) != 0) {
+        kfree(src);
+        return 0;
+    }
+
+    for (int y = 0; y < h; y++) {
+        uint32_t sy = (uint32_t)y * sh / (uint32_t)h;
+        for (int x = 0; x < w; x++) {
+            uint32_t sx = (uint32_t)x * sw / (uint32_t)w;
+            wallpaper[(size_t)y * (size_t)w + (size_t)x] = src[(size_t)sy * (size_t)sw + (size_t)sx];
+        }
+    }
+    kfree(src);
+    return 1;
+}
+
+static void wallpaper_build(void)
+{
+    int w = fb_width();
+    int h = fb_height();
+    wallpaper = (uint32_t*)kmalloc((size_t)w * (size_t)h * 4);
+    if (!wallpaper)
+        return;
+
+    if (!wallpaper_load_disk(w, h))
+        wallpaper_paint_procedural(w, h);
+
+    uint32_t* save = fb_backbuffer();
+    memcpy(save, wallpaper, (size_t)w * (size_t)h * 4);
+
+    int cx = w / 2;
+    int cy = h / 2 - 40;
+    gfx_clip_reset();
     gfx_text_scaled(cx - 5 * 16, cy + 170, gfx_mix(THEME_WALL_MID, 0xFFFFFFFF, 140), "ORBIT", 4, 1);
     gfx_text(cx - gfx_text_width(ORBIT_TAGLINE) / 2, cy + 240,
              gfx_mix(THEME_WALL_MID, 0xFFFFFFFF, 80), ORBIT_TAGLINE);
