@@ -208,6 +208,8 @@ int fs_move(fs_node_t* cwd, const char* src, const char* dst)
     }
     if (!parent || parent->type != FS_DIR || fs_child(parent, base))
         return -1;
+    if (source->type == FS_DIR && is_descendant_of(parent, source))
+        return -3;
 
     detach(source);
     strlcpy(source->name, base, ORBIT_MAX_NAME);
