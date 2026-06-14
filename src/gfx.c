@@ -209,6 +209,13 @@ void gfx_ring(int cx, int cy, int r, int thickness, uint32_t color)
     }
 }
 
+void gfx_blit_argb(int x, int y, int w, int h, const uint32_t* px)
+{
+    for (int row = 0; row < h; row++)
+        for (int col = 0; col < w; col++)
+            blend(x + col, y + row, px[(size_t)row * (size_t)w + (size_t)col]);
+}
+
 static void draw_glyph(int x, int y, uint32_t color, unsigned char c, const unsigned char (*font)[16], int scale)
 {
     const unsigned char* g = font[c];

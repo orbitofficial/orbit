@@ -62,7 +62,11 @@ gui: $(IMAGE)
 fullscreen: $(IMAGE)
 	$(QEMU) $(QEMUFLAGS) -serial stdio -full-screen
 
+logo:
+	python3 scripts/genlogo.py assets/orbit_logo.png
+	python3 scripts/png2logo.py assets/orbit_logo.png src/logo_data.h orbit_logo
+
 clean:
 	rm -rf $(BUILD)
 
-.PHONY: all run gui fullscreen clean
+.PHONY: all run gui fullscreen logo clean

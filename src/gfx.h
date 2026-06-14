@@ -18,6 +18,7 @@ void gfx_rounded_top(int x, int y, int w, int h, int radius, uint32_t color);
 void gfx_shadow(int x, int y, int w, int h, int radius);
 void gfx_circle(int cx, int cy, int r, uint32_t color);
 void gfx_ring(int cx, int cy, int r, int thickness, uint32_t color);
+void gfx_blit_argb(int x, int y, int w, int h, const uint32_t* px);
 
 void gfx_char(int x, int y, uint32_t color, char c);
 void gfx_text(int x, int y, uint32_t color, const char* s);
