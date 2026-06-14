@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-cd /mnt/c/Users/xRookieFight/Desktop/Hepsi/orbit || exit 1
+set -e
+
+SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 find . -type f \( -name '*.c' -o -name '*.h' -o -name '*.asm' -o -name '*.ld' -o -name 'Makefile' \) -exec sed -i 's/\r$//' {} +
 echo "--- tab check in Makefile (want >0):"
 grep -cP '^\t' Makefile || true
